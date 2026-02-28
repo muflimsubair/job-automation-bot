@@ -1,0 +1,121 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b8448f18-bc02-4aa3-8af9-bb1716e00b42",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/api/remote-jobs?search=automation",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e7cb8844-13e4-403a-9b00-a9c3a70d3372",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $input.first().json.jobs || [];\n\n// 🔹 role keywords (Python / Automation roles)\nconst roleKeywords = [\n  \"python\",\n  \"automation\",\n  \"rpa\",\n  \"developer\",\n  \"backend\",\n  \"software\",\n  \"engineer\"\n];\n\n// 🔹 India location keywords\nconst indiaLocations = [\n  \"india\",\n  \"remote (india)\",\n  \"bangalore\",\n  \"bengaluru\",\n  \"kerala\",\n  \"kochi\",\n  \"trivandrum\",\n  \"hyderabad\",\n  \"chennai\",\n  \"pune\",\n  \"mumbai\",\n  \"delhi\"\n];\n\n// 🔹 fresher / junior indicators\nconst juniorKeywords = [\n  \"junior\",\n  \"intern\",\n  \"trainee\",\n  \"entry\",\n  \"associate\",\n  \"graduate\"\n];\n\nconst filtered = jobs\n  .filter(job => {\n    const title = (job.title || \"\").toLowerCase();\n    const location = (job.candidate_required_location || \"\").toLowerCase();\n    const description = (job.description || \"\").toLowerCase();\n\n    // match role\n    const isRoleMatch = roleKeywords.some(k => title.includes(k));\n\n    // match India\n    const isIndia = indiaLocations.some(loc => location.includes(loc));\n\n    // entry level logic (RELAXED for freshers)\n    const isEntryLevel =\n      juniorKeywords.some(k => title.includes(k)) ||\n      juniorKeywords.some(k => description.includes(k)) ||\n      description.includes(\"0-2\") ||\n      description.includes(\"1 year\") ||\n      !description.includes(\"years\"); // allow if no experience mentioned\n\n    return isRoleMatch && isIndia && isEntryLevel;\n  })\n  .map(job => ({\n    json: {\n      title: job.title,\n      company: job.company_name,\n      location: job.candidate_required_location,\n      url: job.url\n    }\n  }));\n\n// 🔹 If no jobs found, send default message\nif (filtered.length === 0) {\n  return [\n    {\n      json: {\n        title: \"No fresher Python/Automation jobs found today 😔\",\n        company: \"\",\n        location: \"India\",\n        url: \"\"\n      }\n    }\n  ];\n}\n\nreturn filtered;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "81ec4ee2-8530-44dd-8aee-59755e3bd00a",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "chatId": "5812595747",
+        "text": "=🚀 New Job Alert!  {{ $json.title }} 🏢 {{ $json.company }} 🌍 {{ $json.location }}  Apply here: {{ $json.url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "6558b2e4-e766-42fe-bb1f-beebb49e7a80",
+      "name": "Send a text message",
+      "webhookId": "44f2532d-e96f-4cec-9dbe-42bb621b4df4",
+      "credentials": {
+        "telegramApi": {
+          "id": "6wDcVqNjIN0POQ5O",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "38620f71-41f7-4987-b0a5-4fac7d1eec01",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6335bb6855b54d41f735214eb306d7d5a77ccf05d349fb1edd95c7461c5b3c2e"
+  },
+  "id": "4HKJqfF5eyPJlj9z",
+  "tags": []
+}
