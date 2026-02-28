@@ -1,1 +1,1 @@
-# Job Automation Bot 
+# 🚀 Job Automation Bot (n8n + Telegram)
