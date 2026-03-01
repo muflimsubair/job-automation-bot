@@ -39,7 +39,7 @@ Telegram Node (Send job alerts)
 ## 📸 Screenshots
 
 ### 🔹 n8n Workflow
-![Workflow](screenshots/workflow.png)
+![Workflow](screenshots/Screenshot 2026-03-01 050821.png)
 
 ### 🔹 Telegram Job Alert
 ![Telegram Alert](screenshots/telegram.png)
